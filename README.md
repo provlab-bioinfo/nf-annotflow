@@ -204,4 +204,4 @@ For issues, questions, or feature requests, please [open an issue](https://githu
 
 ## License
 
-[Specify your license here - e.g., MIT, GPL-3.0, Apache-2.0]
+This project is licensed under the MIT License - see the LICENSE file for details.
