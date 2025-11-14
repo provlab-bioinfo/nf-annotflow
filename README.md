@@ -12,7 +12,7 @@ A modular and reproducible Nextflow pipeline for comprehensive bacterial genome 
 - Comprehensive analysis suite:
   - 🧠 **Functional annotation** — [Bakta](https://github.com/oschwengers/bakta) for rapid and standardized bacterial genome annotation
   - 💊 **AMR gene detection** — [AMRFinderPlus](https://github.com/ncbi/amr) for identifying antimicrobial resistance genes
-  - 🧫 **Resistance & virulence screening** — [Abricate](https://github.com/tseemann/abricate) for mass screening against multiple databases
+  - 🦠 **Virulence gene screening** — Comprehensive virulome analysis for pathogenicity assessment
   - 🔬 **Plasmid typing** — [MOB-suite](https://github.com/phac-nml/mob-suite) for plasmid reconstruction and typing
   - 🧩 **Sequence typing (MLST)** — [mlst](https://github.com/tseemann/mlst) for multi-locus sequence typing
 
@@ -84,33 +84,33 @@ nextflow run xiaoli-dong/nf-annotflow \
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `--input` | string | Path to CSV samplesheet containing sample information |
-| `--outdir` | string | Output directory for results (must be an absolute path for cloud storage) |
+| `--input` | string | Path to CSV samplesheet containing information about the samples |
+| `--outdir` | string | Output directory where results will be saved (use absolute paths for cloud storage) |
+| `--email` | string | Email address for completion summary |
+| `--multiqc_title` | string | MultiQC report title (printed as page header, used for filename if not specified) |
 
-### Annotation Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `--skip_bakta` | boolean | `false` | Skip Bakta annotation |
-| `--bakta_db` | string | - | Path to Bakta database |
-| `--bakta_min_contig_length` | integer | `1` | Minimum contig length for Bakta annotation |
-
-### AMR and Virulence Detection Parameters
+### Analysis Options
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `--skip_amrfinderplus` | boolean | `false` | Skip AMRFinderPlus analysis |
-| `--amrfinderplus_db` | string | - | Path to AMRFinderPlus database |
-| `--skip_abricate` | boolean | `false` | Skip Abricate screening |
-| `--abricate_db` | string | - | Abricate database to use (e.g., `ncbi`, `card`, `resfinder`) |
-
-### Plasmid and Typing Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
+| `--skip_bakta` | boolean | `false` | Skip Bakta functional annotation |
+| `--skip_mlst` | boolean | `false` | Skip MLST sequence typing |
 | `--skip_mobsuite` | boolean | `false` | Skip MOB-suite plasmid analysis |
-| `--skip_mlst` | boolean | `false` | Skip MLST typing |
-| `--mlst_scheme` | string | - | MLST scheme to use (auto-detected if not specified) |
+| `--skip_virulome` | boolean | `false` | Skip virulence gene screening |
+| `--skip_amr` | boolean | `false` | Skip antimicrobial resistance gene detection |
+
+### Database Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `--bakta_db` | string | `/nfs/APL_Genomics/db/prod/bakta/v6` | Path to Bakta database |
+| `--amrfinderplus_db` | string | `/nfs/Genomics_DEV/projects/xdong/deve/pathogenseq2/db/AMRFinderPlus/latest` | Path to AMRFinderPlus database |
+
+### Generic Options
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `--multiqc_methods_description` | string | Custom MultiQC YAML file containing HTML with methods description |
 
 ### Help Options
 
@@ -131,18 +131,35 @@ Functional Annotation (Bakta)
     ↓
 AMR Detection (AMRFinderPlus)
     ↓
-Resistance & Virulence Screening (Abricate)
+Virulence Gene Screening (Virulome)
     ↓
 Plasmid Typing (MOB-suite)
     ↓
 Sequence Typing (MLST)
     ↓
-Summary Reports 
+Summary Reports & MultiQC
+    ↓
+Final Outputs
 ```
 
 ---
+<!--
+## Output Structure
 
+```
+results/
+├── bakta/               # Functional annotations (GFF3, GenBank, etc.)
+├── amrfinderplus/       # AMR gene predictions
+├── virulome/            # Virulence gene screening results
+├── mobsuite/            # Plasmid reconstruction and typing
+├── mlst/                # Multi-locus sequence typing results
+├── multiqc/             # MultiQC aggregated quality reports
+├── summary/             # Consolidated summary tables
+└── pipeline_info/       # Pipeline execution reports
+```
 
+---
+-->
 ## Database Requirements
 
 nf-annotflow requires several databases to be downloaded and configured:
@@ -150,20 +167,17 @@ nf-annotflow requires several databases to be downloaded and configured:
 ### Bakta Database
 ```bash
 # Download Bakta database (light or full version)
-bakta_db download --output <bakta_db_path> --type light
+bakta_db download --output <bakta_db_path> --type full
+
+# Or download directly from Zenodo
+# Visit: https://zenodo.org/communities/bakta
+# Choose the appropriate database version (light or full)
 ```
 
 ### AMRFinderPlus Database
 ```bash
 # Download AMRFinderPlus database
-amrfinder --update --database <amrfinderplus_db_path>
-```
-
-### Abricate Databases
-```bash
-# Abricate databases are typically included with installation
-# Update databases if needed
-abricate --setupdb
+amrfinder_update --database <amrfinderplus_db_path>
 ```
 
 Provide database paths using the respective parameters (e.g., `--bakta_db`, `--amrfinderplus_db`).
@@ -176,9 +190,9 @@ This pipeline uses the following tools:
 
 - [**Bakta**](https://github.com/oschwengers/bakta) — Rapid and standardized annotation of bacterial genomes
 - [**AMRFinderPlus**](https://github.com/ncbi/amr) — Antimicrobial resistance gene detection
-- [**Abricate**](https://github.com/tseemann/abricate) — Mass screening of contigs for antimicrobial resistance and virulence genes
 - [**MOB-suite**](https://github.com/phac-nml/mob-suite) — Software tools for clustering, reconstruction and typing of plasmids
 - [**mlst**](https://github.com/tseemann/mlst) — Multi-locus sequence typing from assembled contigs
+- [**MultiQC**](https://multiqc.info/) — Aggregate results from bioinformatics analyses
 
 ---
 
@@ -188,9 +202,9 @@ If you use nf-annotflow in your research, please cite the appropriate tools:
 
 - **Bakta** — Schwengers, O., et al. (2021). Bakta: rapid and standardized annotation of bacterial genomes via alignment-free sequence identification. *Microbial Genomics*, 7(11).
 - **AMRFinderPlus** — Feldgarden, M., et al. (2021). AMRFinderPlus and the Reference Gene Catalog facilitate examination of the genomic links among antimicrobial resistance, stress response, and virulence. *Scientific Reports*, 11, 12728.
-- **Abricate** — Seemann, T. Abricate: mass screening of contigs for antimicrobial and virulence genes. GitHub repository.
 - **MOB-suite** — Robertson, J., & Nash, J. H. E. (2018). MOB-suite: software tools for clustering, reconstruction and typing of plasmids from draft assemblies. *Microbial Genomics*, 4(8).
 - **mlst** — Seemann, T. mlst: scan contig files against PubMLST typing schemes. GitHub repository.
+- **MultiQC** — Ewels, P., et al. (2016). MultiQC: summarize analysis results for multiple tools and samples in a single report. *Bioinformatics*, 32(19), 3047-3048.
 
 ---
 
@@ -204,4 +218,4 @@ For issues, questions, or feature requests, please [open an issue](https://githu
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
