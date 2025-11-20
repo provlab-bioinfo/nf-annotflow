@@ -27,7 +27,7 @@ workflow ANNOTATION {
 
     main:
 
-    ch_software_versions = Channel.empty()
+    ch_software_versions = channel.empty()
 
     if (!params.skip_bakta) {
         BAKTA_BAKTA(contigs, bakta_db, [], [])

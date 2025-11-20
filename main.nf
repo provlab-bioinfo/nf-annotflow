@@ -26,20 +26,17 @@ include { PIPELINE_COMPLETION } from './subworkflows/local/utils_nfcore_annotflo
 //
 workflow ABPROVLAB_ANNOTFLOW {
     take:
-    contig // channel: 
+    contig // channel:
 
     main:
-
-    multiqc_report = channel.empty()
     //
     // WORKFLOW: Run pipeline
     //
 
     ANNOTFLOW(contig)
-    multiqc_report = ANNOTFLOW.out.multiqc_report
 
-    emit:
-    multiqc_report // channel: /path/to/multiqc_report.html 
+
+
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,6 +73,5 @@ workflow {
         params.outdir,
         params.monochrome_logs,
         params.hook_url,
-        ABPROVLAB_ANNOTFLOW.out.multiqc_report,
     )
 }
